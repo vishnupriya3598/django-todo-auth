@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>To-Do Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+        }
+
+        .container {
+            width: 70%;
+            margin: 50px auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        input[type="text"], input[type="time"] {
+            padding: 8px;
+            width: 100%;
+        }
+
+        button {
+            padding: 8px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #f1f1f1;
+        }
+
+        .actions a {
+            margin-right: 10px;
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        .logout {
+            margin-top: 20px;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <h2>Welcome, {{ request.user.username }}</h2>
+
+    <!-- Add Task -->
+    <form method="POST">
+        {% csrf_token %}
+        <input type="text" name="title" placeholder="Enter task" required>
+        <input type="time" name="task_time">
+        <button type="submit" style="background-color: green;">Add Task</button>
+    </form>
+
+    <!-- Task Table -->
+    <table>
+        <tr>
+            <th>Task</th>
+            <th>Time</th>
+            <th>Completed</th>
+            <th>Actions</th>
+        </tr>
+
+        {% for task in tasks %}
+        <tr>
+            <td>
+                {% if task.completed %}
+                    <strike>{{ task.title }}</strike>
+                {% else %}
+                    {{ task.title }}
+                {% endif %}
+            </td>
+
+            <td>{{ task.task_time|default:"—" }}</td>
+
+            <td>
+                <form method="POST" action="{% url 'toggle_task' task.id %}">
+                    {% csrf_token %}
+                    <input type="checkbox"
+                           onchange="this.form.submit()"
+                           {% if task.completed %}checked{% endif %}>
+                </form>
+            </td>
+            <td class="actions">
+                <a href="{% url 'edit_task' task.id %}" style="color:darkorchid;">Edit</a>
+                <a href="{% url 'delete_task' task.id %}" style="color: red;">Delete</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">No tasks added</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <form method="POST" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" style="margin-top: 30px;background-color: green;">Logout</button>
+    </form>
+
+</div>
+
+</body>
+</html>
